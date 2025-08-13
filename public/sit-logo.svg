@@ -1,0 +1,20 @@
+<svg width="200" height="240" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red Circle Background -->
+  <circle cx="100" cy="60" r="50" fill="#E53E3E"/>
+  
+  <!-- White "ti" text -->
+  <text x="100" y="75" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">ti</text>
+  
+  <!-- TECHNO INDIA text -->
+  <text x="100" y="140" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#2D3748" text-anchor="middle">TECHNO INDIA</text>
+  
+  <!-- SILIGURI INSTITUTE text -->
+  <text x="100" y="165" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2D3748" text-anchor="middle">SILIGURI INSTITUTE</text>
+  
+  <!-- OF TECHNOLOGY text -->
+  <text x="100" y="185" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2D3748" text-anchor="middle">OF TECHNOLOGY</text>
+  
+  <!-- Subtitle -->
+  <rect x="20" y="200" width="160" height="25" fill="#4A5568"/>
+  <text x="100" y="217" font-family="Arial, sans-serif" font-size="12" font-weight="normal" fill="white" text-anchor="middle">A Satyam Roychowdhury Initiative</text>
+</svg>
