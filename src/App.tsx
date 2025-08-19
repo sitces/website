@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -6,32 +6,17 @@ import Members from './components/Members';
 import Events from './components/Events';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import Apti from './components/Apti';
+
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
-  useEffect(() => {
-    // Scroll animation observer
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, observerOptions);
-
-    // Observe all fade-in elements
-    const fadeElements = document.querySelectorAll('.fade-in');
-    fadeElements.forEach(el => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className="min-h-screen bg-black text-white">
+    <Router>
+      <Routes>
+        {/* Different page locations */}
+        <Route path="/" element={    <div className="min-h-screen bg-black text-white">
       <Navigation />
       <Hero />
       <div id="about" className="fade-in">
@@ -47,7 +32,10 @@ function App() {
         <FAQ />
       </div>
       <Footer />
-    </div>
+    </div>} />
+     <Route path="/Campus-2-Corporate" element={<Apti />} />
+      </Routes>
+    </Router>
   );
 }
 
