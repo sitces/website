@@ -84,31 +84,45 @@ const Apti = () => {
   }, [started]);
 
   // Disable copy, inspect, context menu
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.ctrlKey &&
-        (e.key === "u" || e.key === "U" || e.key === "c" || e.key === "C" || e.key === "s" || e.key === "S")
-      ) {
-        e.preventDefault();
-      }
-      if (
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C" || e.key === "J")) ||
-        e.key === "F12"
-      ) {
-        e.preventDefault();
-      }
-    };
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Disable Ctrl+U, Ctrl+C, Ctrl+S
+    if (
+      e.ctrlKey &&
+      (e.key === "u" || e.key === "U" || e.key === "c" || e.key === "C" || e.key === "s" || e.key === "S")
+    ) {
+      e.preventDefault();
+    }
 
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("keydown", handleKeyDown);
+    // Disable Refresh (F5, Ctrl+R)
+    if (e.key === "F5" || (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
+      e.preventDefault();
+    }
 
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+    // Disable DevTools (Ctrl+Shift+I / J / C, F12)
+    if (
+      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C" || e.key === "J")) ||
+      e.key === "F12"
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    // Prevent refresh / closing tab directly
+    e.preventDefault();
+    e.returnValue = ""; // Chrome requires returnValue to be set
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+  };
+}, []);
+
 
   useEffect(() => {
     document.body.style.userSelect = "none";
@@ -191,7 +205,7 @@ const Apti = () => {
         <>
           <h1 className="text-3xl font-bold mb-3 text-gray-800">Aptitude Test</h1>
           <iframe
-            src="https://forms.gle/sPvnH9t6PsK2TgYEA"
+            src="https://forms.office.com/r/J1FR7b0spJ"
             width="100%"
             height="800"
             frameBorder="0"
