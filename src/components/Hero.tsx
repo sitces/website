@@ -49,7 +49,7 @@ const Hero = () => {
 
         {/* CTA Button */}
         <button className="glow-button bg-yellow-400 text-black px-12 py-4 rounded-full text-xl font-semibold inline-flex items-center space-x-3 hover:bg-yellow-300 transition-all duration-300" >
-          <a href='/Campus-2-Corporate'>Join Our Community</a>
+          <a href='https://chat.whatsapp.com/JUDeBoRDKz9AUI56VyWFD8'>Join Our Community</a>
           <ArrowRight size={24} />
         </button>
       </div>
