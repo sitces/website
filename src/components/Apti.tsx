@@ -201,7 +201,7 @@ const Apti = () => {
           </div>
           <h1 className="text-3xl font-bold mb-2 text-gray-800">Aptitude Test</h1>
           {tooEarly ? (
-            <p className="text-red-600 mb-4 text-center">⏳ The test will start at 4:15 PM. Please wait.</p>
+            <p className="text-red-600 mb-4 text-center">⏳ The test will start at 4:30 PM. Please wait.</p>
           ) : (
             <p className="mb-4 text-gray-600 text-center leading-relaxed">
               The test will start in <b>Fullscreen Mode</b>. <br />
