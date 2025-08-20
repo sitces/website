@@ -14,7 +14,7 @@ const Apti = () => {
 
   // Time window
   const startTime = new Date();
-  startTime.setHours(16,15, 0, 0); // 4:15 PM
+  startTime.setHours(16,30, 0, 0); // 4:15 PM
   const endTime = new Date(startTime.getTime() + 70 * 60000); // +70 mins = 5:25 PM
 
   // Timer + auto lock
