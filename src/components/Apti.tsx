@@ -7,8 +7,41 @@ const Apti = () => {
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState("");
   const [started, setStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(""); // countdown display
+  const [tooEarly, setTooEarly] = useState(false); // block before start time
 
   const SECRET_PASSCODE = import.meta.env.VITE_REACT_APP_UNLOCK_PASSCODE;
+
+  // Time window
+  const startTime = new Date();
+  startTime.setHours(16,15, 0, 0); // 4:15 PM
+  const endTime = new Date(startTime.getTime() + 70 * 60000); // +70 mins = 5:25 PM
+
+  // Timer + auto lock
+  useEffect(() => {
+    if (!started) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+
+      if (now < startTime) {
+        setTooEarly(true);
+        setStarted(false);
+        clearInterval(interval);
+      } else if (now > endTime) {
+        setLocked(true);
+        clearInterval(interval);
+      } else {
+        setTooEarly(false);
+        const diff = endTime.getTime() - now.getTime();
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${mins}m ${secs}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [started]);
 
   const getCookie = (name: string) => {
     const value = `; ${document.cookie}`;
@@ -54,15 +87,11 @@ const Apti = () => {
     if (!started) return;
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        handleViolation();
-      }
+      if (document.hidden) handleViolation();
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        handleViolation();
-      }
+      if (!document.fullscreenElement) handleViolation();
     };
 
     const handleEscKey = (e: KeyboardEvent) => {
@@ -84,45 +113,38 @@ const Apti = () => {
   }, [started]);
 
   // Disable copy, inspect, context menu
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    // Disable Ctrl+U, Ctrl+C, Ctrl+S
-    if (
-      e.ctrlKey &&
-      (e.key === "u" || e.key === "U" || e.key === "c" || e.key === "C" || e.key === "s" || e.key === "S")
-    ) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.ctrlKey &&
+        (e.key === "u" || e.key === "U" || e.key === "c" || e.key === "C" || e.key === "s" || e.key === "S")
+      ) {
+        e.preventDefault();
+      }
+      if (e.key === "F5" || (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
+        e.preventDefault();
+      }
+      if (
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C" || e.key === "J")) ||
+        e.key === "F12"
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-    }
+      e.returnValue = "";
+    };
 
-    // Disable Refresh (F5, Ctrl+R)
-    if (e.key === "F5" || (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
-      e.preventDefault();
-    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // Disable DevTools (Ctrl+Shift+I / J / C, F12)
-    if (
-      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C" || e.key === "J")) ||
-      e.key === "F12"
-    ) {
-      e.preventDefault();
-    }
-  };
-
-  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    // Prevent refresh / closing tab directly
-    e.preventDefault();
-    e.returnValue = ""; // Chrome requires returnValue to be set
-  };
-
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("beforeunload", handleBeforeUnload);
-
-  return () => {
-    window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("beforeunload", handleBeforeUnload);
-  };
-}, []);
-
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   useEffect(() => {
     document.body.style.userSelect = "none";
@@ -147,10 +169,8 @@ useEffect(() => {
       setTabSwitchCount(0);
       setPasscode("");
       setError("");
-
       setCookie("tabSwitchCount", "0", 1);
       setCookie("locked", "false", 1);
-
       await requestFullscreen();
     } else {
       setError("❌ Incorrect passcode. Try again.");
@@ -158,6 +178,15 @@ useEffect(() => {
   };
 
   const startTest = async () => {
+    const now = new Date();
+    if (now < startTime) {
+      setTooEarly(true);
+      return;
+    }
+    if (now > endTime) {
+      setLocked(true);
+      return;
+    }
     setStarted(true);
     await requestFullscreen();
   };
@@ -165,60 +194,75 @@ useEffect(() => {
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50">
       {!started ? (
-        <div className="flex flex-col items-center bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
-          <h1 className="text-3xl font-bold mb-4">Aptitude Test</h1>
-          <p className="mb-4 text-gray-600 text-center">
-            The test will start in <b>Fullscreen Mode</b>. <br />
-            Do not switch tabs, exit fullscreen, or press ESC — otherwise the test will be locked.
-          </p>
+        <div className="flex flex-col items-center bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg relative overflow-hidden">
+          <div className="flex items-center gap-3 mb-4">
+            <img src="/ces-logo-main.png" alt="CES Logo" className="w-12 h-12 object-contain" />
+            <h2 className="text-2xl font-semibold text-blue-700">Campus 2 Corporate</h2>
+          </div>
+          <h1 className="text-3xl font-bold mb-2 text-gray-800">Aptitude Test</h1>
+          {tooEarly ? (
+            <p className="text-red-600 mb-4 text-center">⏳ The test will start at 4:15 PM. Please wait.</p>
+          ) : (
+            <p className="mb-4 text-gray-600 text-center leading-relaxed">
+              The test will start in <b>Fullscreen Mode</b>. <br />
+              Do not switch tabs, exit fullscreen, or press ESC — otherwise the test will be locked.
+            </p>
+          )}
+          <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4">
+            <p className="text-gray-700 font-medium">📅 Start Date: <span className="font-semibold">20/08/2025</span></p>
+            <p className="text-gray-700 font-medium">⏰ Start Time: <span className="font-semibold">4:15 PM</span></p>
+            <p className="text-gray-700 font-medium">⏰ End Time: <span className="font-semibold">5:20 PM</span></p>
+          </div>
           <button
             onClick={startTest}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-full font-medium"
           >
             Start Test
           </button>
+          <p className="mt-6 text-sm text-gray-400">Made with ❤️ by CES</p>
         </div>
       ) : locked ? (
-        <div className="flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
-          <h2 className="text-2xl font-semibold text-red-600 mb-3">🔒 Test Locked</h2>
-          <p className="text-gray-700 mb-4">
-            You triggered violations <b>{tabSwitchCount}</b> times. Enter the passcode to continue.
-          </p>
+<div className="flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
+  <h2 className="text-2xl font-semibold text-red-600 mb-3">🔒 Test Locked</h2>
 
-          <input
-            type="password"
-            placeholder="Enter passcode"
-            value={passcode}
-            onChange={(e) => setPasscode(e.target.value)}
-            className="border rounded-lg px-4 py-2 w-full mb-3 text-black"
-          />
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+  <p className="text-gray-700 mb-4">
+    {new Date() > endTime
+      ? "⏰ The test has ended. Enter the passcode to unlock (admin override)."
+      : `You triggered violations ${tabSwitchCount} times. Enter the passcode to continue.`}
+  </p>
 
-          <button
-            onClick={handleUnlock}
-            className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-          >
-            Unlock
-          </button>
-        </div>
+  {/* Password input shown always */}
+  <input
+    type="password"
+    placeholder="Enter passcode"
+    value={passcode}
+    onChange={(e) => setPasscode(e.target.value)}
+    className="border rounded-lg px-4 py-2 w-full mb-3 text-black"
+  />
+
+  {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+
+  <button
+    onClick={handleUnlock}
+    className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+  >
+    Unlock
+  </button>
+</div>
+
       ) : (
         <>
           <h1 className="text-3xl font-bold mb-3 text-gray-800">Aptitude Test</h1>
+          <p className="mb-2 text-gray-600">⏳ Time Left: <b>{timeLeft}</b></p>
           <iframe
-            src="https://forms.office.com/r/J1FR7b0spJ"
-            width="100%"
-            height="800"
-            frameBorder="0"
-            marginHeight={0}
-            marginWidth={0}
-            className="rounded-xl shadow-lg w-full max-w-3xl"
-          >
-            Loading…
-          </iframe>
+            width="640px"
+            height="480px"
+            src="https://forms.office.com/r/aG1GnUm90r"
+            className="w-full max-w-3xl h-[80vh] rounded-xl shadow-lg border border-gray-200"
+            allowFullScreen
+          ></iframe>
         </>
       )}
-
-      {/* Warning Popup */}
       {showPopup && !locked && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-96 text-center">
@@ -227,7 +271,7 @@ useEffect(() => {
               You triggered violations <b>{tabSwitchCount}</b> times. After 2 times, the test will be locked.
             </p>
             <button
-              onClick={async () => {setShowPopup(false); await requestFullscreen();}}
+              onClick={async () => { setShowPopup(false); await requestFullscreen(); }}
               className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
             >
               Okay, Got It
