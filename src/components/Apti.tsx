@@ -210,7 +210,7 @@ const Apti = () => {
           )}
           <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4">
             <p className="text-gray-700 font-medium">📅 Start Date: <span className="font-semibold">20/08/2025</span></p>
-            <p className="text-gray-700 font-medium">⏰ Start Time: <span className="font-semibold">4:15 PM</span></p>
+            <p className="text-gray-700 font-medium">⏰ Start Time: <span className="font-semibold">4:30 PM</span></p>
             <p className="text-gray-700 font-medium">⏰ End Time: <span className="font-semibold">5:20 PM</span></p>
           </div>
           <button
